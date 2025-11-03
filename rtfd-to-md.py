@@ -21,7 +21,7 @@ pandoc_command = [
     'output path (automatically generated, do not edit)'
 ]
 
-# FIX!!! hevc can be both image or video??
+# TODO: hevc can be both image or video? (no hevc file formats encountered)
 apple_image_codecs = ['heif', 'heic']
 imagemagick_command = [
     'magick',
