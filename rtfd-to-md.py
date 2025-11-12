@@ -60,9 +60,8 @@ ffprobe_command = [
     'input path (automatically generated, do not edit)'
 ]
 
+
 # -----Begin Program-----
-
-
 def main():
     if not os.path.isdir(start_directory):
         raise ValueError('start_directory is not a valid directory')
