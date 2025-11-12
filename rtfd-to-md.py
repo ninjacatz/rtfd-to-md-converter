@@ -1,3 +1,8 @@
+import subprocess
+import os
+import shutil
+import copy
+
 # ------User-Defined Variables-------
 # Directory to begin process:
 start_directory = r''
@@ -56,10 +61,7 @@ ffprobe_command = [
 ]
 
 # -----Begin Program-----
-import subprocess
-import os
-import shutil
-import copy
+
 
 def main():
     if not os.path.isdir(start_directory):
@@ -91,6 +93,7 @@ def doRecursion(directory):
         elif os.path.isdir(file_path):
             doRecursion(file_path)
 
+
 def convertRtfdDirectory(rtfd_directory):
     # .rtf file must be converted first because fixing .md attachments requires a converted .md file
     for file in os.listdir(rtfd_directory):
@@ -118,6 +121,7 @@ def convertRtfdDirectory(rtfd_directory):
                 print("CONVERTING VIDEO: ", file)
                 doFileConversion(file_path, ffmpeg_command, video_convert_extension)
                 fixMdAttachmentFilenames(md_path, file, video_convert_extension)    
+
 
 # doFileConversion: uses 'pandoc', 'magick', or 'ffmpeg' to convert files
 # 'command' parameter can be either pandoc_command, imagemagick_command, or ffmpeg_command
@@ -155,12 +159,13 @@ def doFileConversion(file_path, command, extension):
     # remove renamed file
     os.remove('renamed-' + file)
 
+
 # fixMdAttachmentSyntax: update the syntax of each line denoting a file attachment to match .md syntax
 # '¬' denotes a file attachment when .rtf is converted to .md
 # example:
-# CONVERT FROM: 
-# grand haven.jpg ¬   
-# CONVERT TO:   
+# CONVERT FROM:
+# grand haven.jpg ¬
+# CONVERT TO:
 # ![ATTACHMENT: grand haven.jpg](grand%20haven.jpg)
 def fixMdAttachmentSyntax(md_path):
     with open(md_path, 'r') as f:
@@ -178,11 +183,12 @@ def fixMdAttachmentSyntax(md_path):
     with open(md_path, 'w') as f:
         f.writelines(data)
 
+
 # fixMdAttachmentFilenames: update each line that contains filename with filename that has new extension
 # example:
-# CONVERT FROM: 
-# ![grand haven.HEIC](grand%20haven.HEIC) 
-# CONVERT TO:   
+# CONVERT FROM:
+# ![grand haven.HEIC](grand%20haven.HEIC)
+# CONVERT TO:
 # ![grand haven.jpg](grand%20haven.jpg)
 def fixMdAttachmentFilenames(md_path, file, extension):
     with open(md_path, 'r') as f:
@@ -198,30 +204,32 @@ def fixMdAttachmentFilenames(md_path, file, extension):
     with open(md_path, 'w') as f:
         f.writelines(data)
 
+
 # fileHasAppleCodec: uses 'identify' (imagemagick) and 'ffprobe' (ffmpeg) to find image and video codecs
 # 'command' parameter can be either identify_command or ffprobe_command
 # 'codecs' parameter can be either apple_image_codecs or apple_video_codecs
 def fileHasAppleCodec(file_path, command, codecs):
-        # create copy of command (because it is passed by reference)
-        local_command = copy.deepcopy(command)
+    # create copy of command (because it is passed by reference)
+    local_command = copy.deepcopy(command)
 
-        # find index of 'input path' in command and set that index to file_path
-        input_path_index = 0
-        for (index, parameter) in enumerate(local_command):
-            if parameter.startswith('input path'):
-                input_path_index = index
-        local_command[input_path_index] = file_path
+    # find index of 'input path' in command and set that index to file_path
+    input_path_index = 0
+    for (index, parameter) in enumerate(local_command):
+        if parameter.startswith('input path'):
+            input_path_index = index
+    local_command[input_path_index] = file_path
 
-        # perform CLI command
-        output = subprocess.run(local_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if output.returncode != 0:
-            raise Exception(output.stderr.decode())
+    # perform CLI command
+    output = subprocess.run(local_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if output.returncode != 0:
+        raise Exception(output.stderr.decode())
 
-        # check if codec of file matches an apple codec
-        for codec in codecs:
-            if codec in output.stdout.decode().lower():
-                return True
-        return False
+    # check if codec of file matches an apple codec
+    for codec in codecs:
+        if codec in output.stdout.decode().lower():
+            return True
+    return False
+
 
 if __name__ == '__main__':
     main()
